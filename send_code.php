@@ -51,7 +51,7 @@ if ($stmt->num_rows > 0) {
 // ============================
 // GENERATE CODE
 // ============================
-$code = rand(1000, 9999);
+$otp = rand(1000, 9999);
 $expires_at = date("Y-m-d H:i:s", strtotime("+5 minutes"));
 
 // DELETE OLD CODE
@@ -61,7 +61,7 @@ $stmt->execute();
 
 // INSERT NEW CODE
 $stmt = $conn->prepare("INSERT INTO verification_codes (email, code, expires_at) VALUES (?, ?, ?)");
-$stmt->bind_param("sss", $email, $code, $expires_at);
+$stmt->bind_param("sss", $email, $otp, $expires_at);
 $stmt->execute();
 
 // ============================

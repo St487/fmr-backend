@@ -285,6 +285,7 @@ function callAI($message)
         - GPS must be enabled for accuracy
         - Reports cannot be deleted after submission
         - Editing allowed only when status = Pending
+        - Duration of taking action usually takes 3-14 business days but can be longer depending on severity and priority
 
         ========================
         📱 APP BEHAVIOR RULES
@@ -362,7 +363,7 @@ function callAI($message)
             ]
         ],
         "temperature" => 0.7,
-        "max_tokens" => 300
+        "max_tokens" => 1200
     ];
 
     $ch = curl_init("https://api.groq.com/openai/v1/chat/completions");

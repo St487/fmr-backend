@@ -67,7 +67,7 @@ $stmt->execute();
 // ============================
 // SendGrid API KEY
 // ============================
-$apiKey = "YOUR_SENDGRID_API_KEY";
+$apiKey = getenv("SENDGRID_API_KEY");
 
 // ============================
 // Email payload

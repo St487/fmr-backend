@@ -55,44 +55,71 @@ $stmt->bind_param("sss", $email, $code, $expires_at);
 $stmt->execute();
 
 // ============================
-// SEND EMAIL
+// SEND EMAIL (SENDGRID API)
 // ============================
-$mail = new PHPMailer(true);
 
-try {
-    $mail->isSMTP();
-    $mail->Host = 'smtp.gmail.com';
-    $mail->SMTPAuth = true;
-    $mail->Username = 'fixmyroad.app.noreply@gmail.com';
-    $mail->Password = 'aned ubet uujd ejuf'; // app password
-    $mail->SMTPSecure = 'tls';
-    $mail->Port = 587;
+$sendGridApiKey = getenv("SENDGRID_API_KEY");
 
-    $mail->setFrom('fixmyroad.app.noreply@gmail.com', 'Fix My Road');
-    $mail->addAddress($email);
+$emailData = [
+    "personalizations" => [[
+        "to" => [[
+            "email" => $email
+        ]]
+    ]],
+    "from" => [
+        "email" => "your_verified_sender@example.com",
+        "name" => "Fix My Road"
+    ],
+    "subject" => "Password Reset Code",
+    "content" => [[
+        "type" => "text/html",
+        "value" => "
+            <h3>Password Reset</h3>
+            <p>Your verification code is:</p>
+            <h1>{$code}</h1>
+            <p>Expires in 5 minutes.</p>
+        "
+    ]]
+];
 
-    $mail->isHTML(true);
-    $mail->Subject = 'Password Reset Code';
-    $mail->Body = "
-        <h3>Password Reset</h3>
-        <p>Your verification code is:</p>
-        <h1>$code</h1>
-        <p>Expires in 5 minutes.</p>
-    ";
+$ch = curl_init();
 
-    $mail->send();
+curl_setopt_array($ch, [
+    CURLOPT_URL => "https://api.sendgrid.com/v3/mail/send",
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_POST => true,
+    CURLOPT_POSTFIELDS => json_encode($emailData),
+    CURLOPT_HTTPHEADER => [
+        "Authorization: Bearer {$sendGridApiKey}",
+        "Content-Type: application/json"
+    ]
+]);
 
+$response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$curlError = curl_error($ch);
+
+curl_close($ch);
+
+if ($curlError) {
+    echo json_encode([
+        "status" => "error",
+        "message" => $curlError
+    ]);
+    exit();
+}
+
+if ($httpCode == 202) {
     echo json_encode([
         "status" => "success",
         "message" => "Code sent"
     ]);
-
-} catch (Exception $e) {
+} else {
     echo json_encode([
         "status" => "error",
-        "message" => $mail->ErrorInfo
+        "message" => "SendGrid failed",
+        "http_code" => $httpCode,
+        "response" => json_decode($response, true)
     ]);
 }
-
-$conn->close();
 ?>

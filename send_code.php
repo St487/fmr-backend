@@ -65,51 +65,60 @@ $stmt->bind_param("sss", $email, $code, $expires_at);
 $stmt->execute();
 
 // ============================
-// SEND EMAIL USING GMAIL SMTP
+// SendGrid API KEY
 // ============================
-$mail = new PHPMailer(true);
+$apiKey = "YOUR_SENDGRID_API_KEY";
 
-try {
-    // SMTP CONFIG
-    $mail->isSMTP();
-    $mail->Host       = 'smtp.gmail.com';
-    $mail->SMTPAuth   = true;
+// ============================
+// Email payload
+// ============================
+$payload = [
+    "personalizations" => [[
+        "to" => [[ "email" => $email ]]
+    ]],
+    "from" => [
+        "email" => "your_verified_email@domain.com"
+    ],
+    "subject" => "FixMyRoad Verification Code",
+    "content" => [[
+        "type" => "text/plain",
+        "value" => "Your verification code is: $otp"
+    ]]
+];
 
-    $mail->Username   = 'fixmyroad.app.noreply@gmail.com';
-    $mail->Password   = 'aned ubet uujd ejuf';
+// ============================
+// CURL REQUEST
+// ============================
+$ch = curl_init("https://api.sendgrid.com/v3/mail/send");
 
-    $mail->SMTPSecure = 'tls';
-    $mail->Port       = 587;
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "Authorization: Bearer $apiKey",
+    "Content-Type: application/json"
+]);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
 
-    // EMAIL DETAILS
-    $mail->setFrom('fixmyroad.app.noreply@gmail.com', 'Fix My Road');
-    $mail->addAddress($email);
+$response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-    $mail->isHTML(true);
-    $mail->Subject = 'Your Verification Code';
-
-    $mail->Body = "
-        <h3>Verification Code</h3>
-        <p>Your code is:</p>
-        <h1>$code</h1>
-        <p>This code will expire in 5 minutes.</p>
-    ";
-
-    $mail->AltBody = "Your verification code is: $code";
-
-    $mail->send();
-
-    echo json_encode([
-        "status" => "success",
-        "message" => "Verification code sent"
-    ]);
-
-} catch (Exception $e) {
+if (curl_errno($ch)) {
     echo json_encode([
         "status" => "error",
-        "message" => "Mailer Error: " . $mail->ErrorInfo
+        "message" => curl_error($ch)
     ]);
+    exit;
 }
 
-$conn->close();
+curl_close($ch);
+
+// ============================
+// SUCCESS RESPONSE
+// ============================
+echo json_encode([
+    "status" => "success",
+    "message" => "OTP sent successfully",
+    "otp_debug" => $otp,
+    "sendgrid_status" => $httpCode
+]);
 ?>

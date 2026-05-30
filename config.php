@@ -2,7 +2,7 @@
 $servername = "sql309.infinityfree.com";
 $username   = "if0_42053437";
 $password   = "M5AfCcmVbk";
-$dbname     = "fmrdb";
+$dbname     = "if0_42053437_fmrdb";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {

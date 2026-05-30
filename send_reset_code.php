@@ -67,7 +67,7 @@ $emailData = [
         ]]
     ]],
     "from" => [
-        "email" => "your_verified_sender@example.com",
+        "email" => "fixmyroad.app.noreply@gmail.com",
         "name" => "Fix My Road"
     ],
     "subject" => "Password Reset Code",

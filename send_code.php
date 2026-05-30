@@ -77,7 +77,7 @@ $payload = [
         "to" => [[ "email" => $email ]]
     ]],
     "from" => [
-        "email" => "your_verified_email@domain.com"
+        "email" => "fixmyroad.app.noreply@gmail.com"
     ],
     "subject" => "FixMyRoad Verification Code",
     "content" => [[
@@ -115,10 +115,20 @@ curl_close($ch);
 // ============================
 // SUCCESS RESPONSE
 // ============================
-echo json_encode([
-    "status" => "success",
-    "message" => "OTP sent successfully",
-    "otp_debug" => $otp,
-    "sendgrid_status" => $httpCode
-]);
+$responseData = json_decode($response, true);
+
+if ($httpCode == 202) {
+    echo json_encode([
+        "status" => "success",
+        "message" => "OTP sent successfully"
+    ]);
+} else {
+    echo json_encode([
+        "status" => "error",
+        "message" => "SendGrid failed",
+        "sendgrid_status" => $httpCode,
+        "sendgrid_response" => $responseData,
+        "raw_response" => $response
+    ]);
+}
 ?>

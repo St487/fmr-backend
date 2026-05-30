@@ -70,7 +70,7 @@ $emailData = [
         "email" => "fixmyroad.app.noreply@gmail.com",
         "name" => "Fix My Road"
     ],
-    "subject" => "Password Reset Code",
+    "subject" => "FixMyRoad Password Reset Code",
     "content" => [[
         "type" => "text/html",
         "value" => "
@@ -78,6 +78,7 @@ $emailData = [
             <p>Your verification code is:</p>
             <h1>{$code}</h1>
             <p>Expires in 5 minutes.</p>
+            <p>If you did not request this, please ignore.</p>
         "
     ]]
 ];

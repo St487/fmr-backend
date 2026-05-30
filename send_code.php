@@ -81,8 +81,14 @@ $payload = [
     ],
     "subject" => "FixMyRoad Verification Code",
     "content" => [[
-        "type" => "text/plain",
-        "value" => "Your verification code is: $otp"
+        "type" => "text/html",
+        "value" => "
+            <h3>Verification Code</h3>
+            <p>Your verification code is:</p>
+            <h1>{$otp}</h1>
+            <p>Expires in 5 minutes.</p>
+            <p>If you did not request this, please ignore.</p>
+        "
     ]]
 ];
 

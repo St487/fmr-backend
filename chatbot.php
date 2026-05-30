@@ -384,9 +384,7 @@ function callAI($message)
         ?? "AI error.";
 }
 
-// ==============================
-// MAIN PROCESS
-// ==============================
+// ================= MAIN PROCESS =================
 $userMessageLower = strtolower($userMessage);
 $intent = detectIntent($userMessageLower);
 
@@ -401,34 +399,19 @@ $categoryMap = [
 
 $category = $categoryMap[$intent] ?? null;
 
-$response = "";
+// ================= TRY FAQ FIRST =================
+$faqAnswer = getFAQAnswer($conn, $userMessageLower, null);
 
-// ================= FAQ =================
-if ($intent == "faq") {
-
-    $faqAnswer = getFAQAnswer($conn, $userMessageLower, null);
-
-    if (!$faqAnswer) {
-        $faqAnswer = getFAQAnswer($conn, $userMessageLower, "general");
-    }
-
-    $response = $faqAnswer ?? "Sorry, I couldn't find an answer in FAQ.";
-
-} else {
-
-    $faqAnswer = getFAQAnswer($conn, $userMessageLower, null);
-
-    if (!$faqAnswer && $category) {
-        $faqAnswer = getFAQAnswer($conn, $userMessageLower, $category);
-    }
-    
-    if ($faqAnswer) {
-        $response = $faqAnswer;
-    } else {
-        $response = callAI($userMessage);
-    }
+if (!$faqAnswer && $category) {
+    $faqAnswer = getFAQAnswer($conn, $userMessageLower, $category);
 }
 
+// ================= FINAL DECISION =================
+if ($faqAnswer) {
+    $response = $faqAnswer;
+} else {
+    $response = callAI($userMessage);
+}
 // ================= OUTPUT =================
 echo json_encode([
     "reply" => $response,

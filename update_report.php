@@ -3,6 +3,11 @@ header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *");
 include 'config.php';
 
+include 'cloudinary_upload.php';
+
+$cloud_name = env('CLOUDINARY_CLOUD_NAME');
+$upload_preset = "fmr_upload";
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(["status" => "error", "message" => "Invalid request method."]);
     exit;
@@ -50,23 +55,21 @@ foreach ($photoSlots as $slot => $path) {
     }
 }
 
-// 3. Handle newly uploaded images (Fill ONLY the truly empty slots)
 if (isset($_FILES['images'])) {
-    $targetDir = "uploads/reports/";
-    if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
 
     foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
-        // Find the next available null slot
-        $emptySlot = array_search(null, $photoSlots);
-        
-        if ($emptySlot !== false) {
-            $originalName = $_FILES['images']['name'][$key];
-            $extension = pathinfo($originalName, PATHINFO_EXTENSION);
-            $fileName = time() . '_' . uniqid() . '.' . $extension;
-            $targetFilePath = $targetDir . $fileName;
 
-            if (move_uploaded_file($tmpName, $targetFilePath)) {
-                $photoSlots[$emptySlot] = $targetFilePath;
+        // find next empty slot
+        $emptySlot = array_search(null, $photoSlots);
+
+        if ($emptySlot !== false) {
+
+            $result = uploadToCloudinary($tmpName, $cloud_name, $upload_preset);
+
+            if (isset($result['secure_url'])) {
+                $photoSlots[$emptySlot] = $result['secure_url'];
+            } else {
+                error_log(json_encode($result)); // debug
             }
         }
     }

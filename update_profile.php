@@ -3,6 +3,11 @@ header("Access-Control-Allow-Origin: *");
 header('Content-Type: application/json');
 include 'config.php';
 
+include 'cloudinary_upload.php';
+
+$cloud_name = env('CLOUDINARY_CLOUD_NAME');
+$upload_preset = "fmr_upload";
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $user_id = $_POST['user_id'] ?? null;
@@ -29,16 +34,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $profilePath = null;
 
     if (isset($_FILES['profile_image'])) {
-        $targetDir = "uploads/profile_photo/";
-        if (!file_exists($targetDir)) {
-            mkdir($targetDir, 0777, true);
-        }
 
-        $fileName = time() . "_" . basename($_FILES["profile_image"]["name"]);
-        $targetFilePath = $targetDir . $fileName;
+        $result = uploadToCloudinary(
+            $_FILES['profile_image']['tmp_name'],
+            $cloud_name,
+            $upload_preset
+        );
 
-        if (move_uploaded_file($_FILES["profile_image"]["tmp_name"], $targetFilePath)) {
-            $profilePath = $targetFilePath;
+        if (isset($result['secure_url'])) {
+            $profilePath = $result['secure_url'];
+        } else {
+            error_log(json_encode($result));
         }
     }
 

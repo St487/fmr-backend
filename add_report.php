@@ -3,6 +3,10 @@ header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *");
 include 'config.php';
 
+$cloud_name = env('CLOUDINARY_CLOUD_NAME');
+$upload_url = "https://api.cloudinary.com/v1_1/$cloud_name/image/upload";
+$upload_preset = "fmr_upload";
+
 // Only allow POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(["status" => "error", "message" => "Invalid request method."]);
@@ -31,20 +35,35 @@ if (!isset($_FILES['images']) || empty($_FILES['images']['name'][0])) {
     exit;
 }
 
-$targetDir = "uploads/reports/";
-if (!file_exists($targetDir)) {
-    mkdir($targetDir, 0777, true);
+function uploadToCloudinary($fileTmp, $upload_url, $upload_preset) {
+
+    $image_data = base64_encode(file_get_contents($fileTmp));
+
+    $data = [
+        "file" => "data:image/jpeg;base64," . $image_data,
+        "upload_preset" => $upload_preset
+    ];
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $upload_url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    return json_decode($response, true);
 }
 
 foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
-    if ($key > 2) break; // Only allow 3 photos
-    $originalName = $_FILES['images']['name'][$key];
-    $extension = pathinfo($originalName, PATHINFO_EXTENSION);
-    $fileName = time() . '_' . uniqid() . '.' . $extension;
-    $targetFilePath = $targetDir . $fileName;
 
-    if (move_uploaded_file($tmpName, $targetFilePath)) {
-        $photos["photo" . ($key + 1)] = $targetFilePath;
+    if ($key > 2) break; // max 3 images
+
+    $result = uploadToCloudinary($tmpName, $upload_url, $upload_preset);
+
+    if (isset($result['secure_url'])) {
+        $photos["photo" . ($key + 1)] = $result['secure_url'];
     }
 }
 

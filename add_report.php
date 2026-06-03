@@ -3,7 +3,7 @@ header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *");
 include 'config.php';
 
-$cloud_name = env('CLOUDINARY_CLOUD_NAME');
+$cloud_name = dioejnslw;
 $upload_url = "https://api.cloudinary.com/v1_1/$cloud_name/image/upload";
 $upload_preset = "fmr_upload";
 

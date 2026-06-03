@@ -5,7 +5,7 @@ include 'config.php';
 
 include 'cloudinary_upload.php';
 
-$cloud_name = env('CLOUDINARY_CLOUD_NAME');
+$cloud_name = "dioejnslw";
 $upload_preset = "fmr_upload";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
